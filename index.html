@@ -484,6 +484,7 @@
               </li>
             </ul>
           </div>
+          
         </div>
         <div class="card">
   <h2>Dummy Dataset: Solar Wind Parameters</h2>
@@ -519,6 +520,24 @@
       <tr><td>T19</td><td>430</td><td>6.9</td><td>495</td></tr>
     </tbody>
   </table>
+        </div>
+  <div class="card">
+  <h2>🧮 Entropy & Anomaly Results</h2>
+  <button onclick="runEntropyAnomalyAnalysis()" style="padding:10px 20px; background:#1e2a38; color:white; border:none; border-radius:5px;">Run Analysis</button>
+  <div style="margin-top:15px;">
+    <p><strong>Entropy:</strong></p>
+    <ul>
+      <li>Flux: <span id="entropy-flux">-</span></li>
+      <li>Temp: <span id="entropy-temp">-</span></li>
+      <li>Velocity: <span id="entropy-velocity">-</span></li>
+    </ul>
+    <p><strong>Anomaly Probability (%):</strong></p>
+    <ul>
+      <li>Flux: <span id="anomaly-flux">-</span></li>
+      <li>Temp: <span id="anomaly-temp">-</span></li>
+      <li>Velocity: <span id="anomaly-velocity">-</span></li>
+    </ul>
+  </div>
 </div>
         <div id="live" class="section" style="display: none">
           <div class="card">
@@ -649,5 +668,65 @@
         }, 2000);
       }
     </script>
+    
+<script>
+  function computeEntropy(probabilities) {
+    let entropy = 0;
+    for (let p of probabilities) {
+      if (p > 0) entropy -= p * Math.log2(p);
+    }
+    return entropy.toFixed(4);
+  }
+
+  function calculateProbabilities(values) {
+    const total = values.length;
+    const freq = {};
+    values.forEach(v => {
+      freq[v] = (freq[v] || 0) + 1;
+    });
+    return values.map(v => freq[v] / total);
+  }
+
+  function computeAnomalyScore(values) {
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
+    const std = Math.sqrt(variance);
+    const latest = values[values.length - 1];
+    const zScore = (latest - mean) / std;
+    const prob = Math.min(Math.abs(zScore) / 3, 1); // normalize between 0–1
+    return (prob * 100).toFixed(2);
+  }
+
+  function runEntropyAnomalyAnalysis() {
+    const rows = document.querySelectorAll("#datasets table tbody tr");
+    const flux = [], temp = [], velocity = [];
+
+    rows.forEach(row => {
+      const cells = row.querySelectorAll("td");
+      flux.push(parseFloat(cells[1].textContent));
+      temp.push(parseFloat(cells[2].textContent));
+      velocity.push(parseFloat(cells[3].textContent));
+    });
+
+    // Entropy
+    const entropyFlux = computeEntropy(calculateProbabilities(flux));
+    const entropyTemp = computeEntropy(calculateProbabilities(temp));
+    const entropyVelocity = computeEntropy(calculateProbabilities(velocity));
+
+    // Anomaly Score
+    const anomalyFlux = computeAnomalyScore(flux);
+    const anomalyTemp = computeAnomalyScore(temp);
+    const anomalyVelocity = computeAnomalyScore(velocity);
+
+    // Insert into HTML
+    document.getElementById("entropy-flux").textContent = entropyFlux;
+    document.getElementById("entropy-temp").textContent = entropyTemp;
+    document.getElementById("entropy-velocity").textContent = entropyVelocity;
+
+    document.getElementById("anomaly-flux").textContent = anomalyFlux + "%";
+    document.getElementById("anomaly-temp").textContent = anomalyTemp + "%";
+    document.getElementById("anomaly-velocity").textContent = anomalyVelocity + "%";
+  }
+</script>
   </body>
 </html>
