@@ -484,6 +484,49 @@
               </li>
             </ul>
           </div>
+          <div class="card">
+  <h2>📊 Entropy & Anomaly Probability Summary</h2>
+  <p>This summary shows entropy values and anomaly probability based on sample Aditya-L1 data:</p>
+  
+  <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+    <thead style="background: #eee;">
+      <tr>
+        <th style="padding: 8px; border: 1px solid #ccc;">Time</th>
+        <th style="padding: 8px; border: 1px solid #ccc;">Flux</th>
+        <th style="padding: 8px; border: 1px solid #ccc;">Temp</th>
+        <th style="padding: 8px; border: 1px solid #ccc;">Velocity</th>
+        <th style="padding: 8px; border: 1px solid #ccc;">Entropy (Shannon)</th>
+        <th style="padding: 8px; border: 1px solid #ccc;">Anomaly Probability</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;">T0</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">321.2</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">0.85</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">457</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">0.92</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Low</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;">T1</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">329.6</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">0.96</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">462</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">1.23</td>
+        <td style="padding: 8px; border: 1px solid #ccc; color: red;">⚠ High</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; border: 1px solid #ccc;">T2</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">342.7</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">0.91</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">469</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">1.08</td>
+        <td style="padding: 8px; border: 1px solid #ccc;">Moderate</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
         </div>
 
         <div id="live" class="section" style="display: none">
