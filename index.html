@@ -485,60 +485,6 @@
             </ul>
           </div>
           
-        </div>
-        <div class="card">
-  <h2>Dummy Dataset: Solar Wind Parameters</h2>
-  <table style="width: 100%; border-collapse: collapse; text-align: center;">
-    <thead style="background: #eee;">
-      <tr>
-        <th style="padding: 8px; border: 1px solid #ccc;">Time</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Flux (particles/cm²·s)</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Temperature (10⁵ K)</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Velocity (km/s)</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>T0</td><td>350</td><td>5.2</td><td>380</td></tr>
-      <tr><td>T1</td><td>360</td><td>5.5</td><td>400</td></tr>
-      <tr><td>T2</td><td>355</td><td>5.3</td><td>390</td></tr>
-      <tr><td>T3</td><td>365</td><td>5.7</td><td>410</td></tr>
-      <tr><td>T4</td><td>400</td><td>6.2</td><td>450</td></tr>
-      <tr><td>T5</td><td>380</td><td>6.1</td><td>460</td></tr>
-      <tr><td>T6</td><td>410</td><td>6.5</td><td>455</td></tr>
-      <tr><td>T7</td><td>370</td><td>6.3</td><td>440</td></tr>
-      <tr><td>T8</td><td>360</td><td>5.9</td><td>430</td></tr>
-      <tr><td>T9</td><td>340</td><td>5.8</td><td>420</td></tr>
-      <tr><td>T10</td><td>400</td><td>6.2</td><td>470</td></tr>
-      <tr><td>T11</td><td>430</td><td>6.4</td><td>480</td></tr>
-      <tr><td>T12</td><td>420</td><td>6.6</td><td>490</td></tr>
-      <tr><td>T13</td><td>410</td><td>6.8</td><td>485</td></tr>
-      <tr><td>T14</td><td>390</td><td>6.5</td><td>475</td></tr>
-      <tr><td>T15</td><td>385</td><td>6.3</td><td>460</td></tr>
-      <tr><td>T16</td><td>370</td><td>6.0</td><td>450</td></tr>
-      <tr><td>T17</td><td>395</td><td>6.1</td><td>455</td></tr>
-      <tr><td>T18</td><td>415</td><td>6.7</td><td>480</td></tr>
-      <tr><td>T19</td><td>430</td><td>6.9</td><td>495</td></tr>
-    </tbody>
-  </table>
-        </div>
-  <div class="card">
-  <h2>🧮 Entropy & Anomaly Results</h2>
-  <button onclick="runEntropyAnomalyAnalysis()" style="padding:10px 20px; background:#1e2a38; color:white; border:none; border-radius:5px;">Run Analysis</button>
-  <div style="margin-top:15px;">
-    <p><strong>Entropy:</strong></p>
-    <ul>
-      <li>Flux: <span id="entropy-flux">-</span></li>
-      <li>Temp: <span id="entropy-temp">-</span></li>
-      <li>Velocity: <span id="entropy-velocity">-</span></li>
-    </ul>
-    <p><strong>Anomaly Probability (%):</strong></p>
-    <ul>
-      <li>Flux: <span id="anomaly-flux">-</span></li>
-      <li>Temp: <span id="anomaly-temp">-</span></li>
-      <li>Velocity: <span id="anomaly-velocity">-</span></li>
-    </ul>
-  </div>
-</div>
         <div id="live" class="section" style="display: none">
           <div class="card">
             <h2>🔴 Live Screening</h2>
@@ -668,65 +614,5 @@
         }, 2000);
       }
     </script>
-    
-<script>
-  function computeEntropy(probabilities) {
-    let entropy = 0;
-    for (let p of probabilities) {
-      if (p > 0) entropy -= p * Math.log2(p);
-    }
-    return entropy.toFixed(4);
-  }
-
-  function calculateProbabilities(values) {
-    const total = values.length;
-    const freq = {};
-    values.forEach(v => {
-      freq[v] = (freq[v] || 0) + 1;
-    });
-    return values.map(v => freq[v] / total);
-  }
-
-  function computeAnomalyScore(values) {
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-    const std = Math.sqrt(variance);
-    const latest = values[values.length - 1];
-    const zScore = (latest - mean) / std;
-    const prob = Math.min(Math.abs(zScore) / 3, 1); // normalize between 0–1
-    return (prob * 100).toFixed(2);
-  }
-
-  function runEntropyAnomalyAnalysis() {
-    const rows = document.querySelectorAll("#datasets table tbody tr");
-    const flux = [], temp = [], velocity = [];
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("td");
-      flux.push(parseFloat(cells[1].textContent));
-      temp.push(parseFloat(cells[2].textContent));
-      velocity.push(parseFloat(cells[3].textContent));
-    });
-
-    // Entropy
-    const entropyFlux = computeEntropy(calculateProbabilities(flux));
-    const entropyTemp = computeEntropy(calculateProbabilities(temp));
-    const entropyVelocity = computeEntropy(calculateProbabilities(velocity));
-
-    // Anomaly Score
-    const anomalyFlux = computeAnomalyScore(flux);
-    const anomalyTemp = computeAnomalyScore(temp);
-    const anomalyVelocity = computeAnomalyScore(velocity);
-
-    // Insert into HTML
-    document.getElementById("entropy-flux").textContent = entropyFlux;
-    document.getElementById("entropy-temp").textContent = entropyTemp;
-    document.getElementById("entropy-velocity").textContent = entropyVelocity;
-
-    document.getElementById("anomaly-flux").textContent = anomalyFlux + "%";
-    document.getElementById("anomaly-temp").textContent = anomalyTemp + "%";
-    document.getElementById("anomaly-velocity").textContent = anomalyVelocity + "%";
-  }
-</script>
   </body>
 </html>
