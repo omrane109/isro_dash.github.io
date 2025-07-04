@@ -717,6 +717,72 @@
     setTimeout(runEntropyAnomalyAnalysis, 500); // wait for DOM to render
   });
 
+function computeAnomalyProbability() {
+    const rows = document.querySelectorAll(
+      'div.card table tbody tr'
+    );
+
+    // Get average values to normalize
+    let totalFlux = 0,
+        totalTemp = 0,
+        totalVel = 0;
+    const data = [];
+
+    rows.forEach((row) => {
+      const cells = row.querySelectorAll("td");
+      const flux = parseFloat(cells[1].textContent);
+      const temp = parseFloat(cells[2].textContent);
+      const vel = parseFloat(cells[3].textContent);
+
+      totalFlux += flux;
+      totalTemp += temp;
+      totalVel += vel;
+
+      data.push({ row, flux, temp, vel });
+    });
+
+    const avgFlux = totalFlux / data.length;
+    const avgTemp = totalTemp / data.length;
+    const avgVel = totalVel / data.length;
+
+    // Now compute anomaly score and display it
+    data.forEach(({ row, flux, temp, vel }) => {
+      const normFlux = flux / avgFlux;
+      const normTemp = temp / avgTemp;
+      const normVel = vel / avgVel;
+
+      const anomalyScore = (normFlux + normTemp + normVel) / 3;
+
+      let probText = "Low";
+      let color = "green";
+
+      if (anomalyScore > 1.15 && anomalyScore <= 1.25) {
+        probText = "Moderate";
+        color = "orange";
+      } else if (anomalyScore > 1.25) {
+        probText = "⚠ High";
+        color = "red";
+      }
+
+      const newCell = document.createElement("td");
+      newCell.textContent = probText;
+      newCell.style = `padding:8px; border:1px solid #ccc; color:${color}; font-weight:bold;`;
+      row.appendChild(newCell);
+    });
+
+    // Add header cell
+    const headerRow = document.querySelector(
+      'div.card table thead tr'
+    );
+    const newHeader = document.createElement("th");
+    newHeader.textContent = "Anomaly Probability";
+    newHeader.style = "padding:8px; border:1px solid #ccc;";
+    headerRow.appendChild(newHeader);
+  }
+
+  // Run after page load
+  window.addEventListener("load", computeAnomalyProbability);
+
     </script>
   </body>
 </html>
