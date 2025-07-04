@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CME Detection Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background: #f4f7fa;
+      }
+      #intro-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #1e2a38;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        z-index: 9;
+        border: none;
+        transition: opacity 1s ease-in-out;
+      }
+      .main-wrapper {
+        display: flex;
+        flex: 1;
+      }
+      aside {
+        width: 220px;
+        background: #1e2a38;
+        color: white;
+        padding: 20px;
+      }
+      main {
+        flex: 1;
+        padding: 30px;
+        overflow-y: auto;
+        position: relative;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      header h1::before {
+        content: "\1F44B Namaste! ";
+        font-size: 1.2rem;
+      }
+      header img {
+        height: 40px;
+        margin-left: 10px;
+      }
+      .card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .card h2 {
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+      }
+      .nav-links a {
+        display: block;
+        color: white;
+        text-decoration: none;
+        margin: 15px 0;
+        cursor: pointer;
+      }
+      canvas {
+        width: 100%;
+        max-height: 200px;
+      }
+      iframe {
+        width: 100%;
+        height: 250px;
+        border: none;
+        margin-top: 10px;
+        border-radius: 8px;
+      }
+      footer {
+        background: #1e2a38;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="intro-screen">👋 Namaste! Welcome to CME Detection Dashboard</div>
+    <div class="main-wrapper" style="display: none">
+      <aside>
+        <h2>CME Monitor</h2>
+        <div class="nav-links">
+          <a onclick="showSection('dashboard')">Dashboard</a>
+          <a onclick="showSection('entropy')">Entropy</a>
+          <a onclick="showSection('models')">Models</a>
+          <a onclick="showSection('alerts')">Alerts</a>
+          <a onclick="showSection('datasets')">Aditya‑L1 Data</a>
+          <a onclick="showSection('live')">Live Screening</a>
+          <a onclick="showSection('profile')">Profile</a>
+          <a onclick="showSection('signup')">Register</a>
+        </div>
+      </aside>
+      <main>
+        <header>
+          <h1>
+            CME Dashboard
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Indian_Space_Research_Organisation_Logo.svg/1200px-Indian_Space_Research_Organisation_Logo.svg.png"
+              alt="ISRO Logo"
+            />
+          </h1>
+        </header>
+
+        <!-- 🧭 Dashboard Tab -->
+        <div id="dashboard" class="section">
+          <div class="grid">
+            <div class="card">
+              <h2>Detected CME</h2>
+              <p id="cme-status" style="font-size: 1.5rem; color: green">
+                Simulating...
+              </p>
+            </div>
+            <div class="card">
+              <h2>Anomaly Probability</h2>
+              <p id="anomaly-prob" style="font-size: 1.5rem; color: red">...</p>
+            </div>
+            <div class="card">
+              <h2>Live Entropy (Dashboard)</h2>
+              <canvas id="entropyChartDashboard"></canvas>
+            </div>
+            <div class="card">
+              <h2>Contributing Features</h2>
+              <ul>
+                <li>Proton Beta</li>
+                <li>Dynamic Pressure</li>
+                <li>Temperature Anisotropy</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h2>Model Explanation</h2>
+              <p>BILSTM + Attention tracks evolving patterns in solar wind.</p>
+            </div>
+            <div class="card">
+              <h2>Aditya‑L1 Satellite</h2>
+              <img
+              src="data:image/jpeg;base64,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""
+              alt="Aditya-L1" style="width:100%; height:auto;"/>
+
+              <p>
+                India’s first solar mission with payloads like SWIS & ASPEX
+                onboard for space weather monitoring.
+              </p>
+            </div>
+            <div class="card">
+              <h2>SWIS‑ASPEX Payload</h2>
+              <img
+                src="data:image/jpeg;base64,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"
+                alt="SWIS ASPEX payload"
+                style="width: 100%; height: auto"
+              />
+              <p>
+                SWIS & ASPEX measure ion distributions crucial for CME
+                detection.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 🔍 Entropy Tab -->
+        <div id="entropy" class="section" style="display: none">
+          <div class="card">
+            <h2>Entropy Overview</h2>
+            <p>
+              Entropy quantifies disorder in solar wind—vital for detecting CMEs
+              early.
+            </p>
+            <ul>
+              <li><strong>Shannon:</strong> randomness</li>
+              <li><strong>Tsallis:</strong> non‑extensive systems</li>
+              <li><strong>Threshold:</strong> >1.2 → CME</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h2>Live Entropy (Entropy Tab)</h2>
+            <canvas id="entropyChartEntropyTab"></canvas>
+          </div>
+          <div class="card">
+            <h2>Event Log</h2>
+            <table style="width: 100%; border-collapse: collapse">
+              <thead style="background: #eee">
+                <tr>
+                  <th style="padding: 8px; border: 1px solid #ccc">Time</th>
+                  <th style="padding: 8px; border: 1px solid #ccc">Entropy</th>
+                  <th style="padding: 8px; border: 1px solid #ccc">Status</th>
+                </tr>
+              </thead>
+              <tbody id="entropyLogTable"></tbody>
+            </table>
+          </div>
+        </div>
+        <!-- 🔽 START OF NEW "Models" SECTION -->
+        <div id="models" class="section" style="display: none">
+          <div class="card">
+            <h2>Hybrid CME Detection Model</h2>
+            <p>
+              Our detection framework integrates
+              <strong>physics-inspired features</strong> with advanced
+              <strong>AI models</strong> to robustly identify CME events from
+              solar wind data.
+            </p>
+          </div>
+
+          <div class="card">
+            <h3>1. Entropy-Based Preprocessing</h3>
+            <ul>
+              <li>
+                <strong>Shannon & Tsallis Entropy</strong> quantify randomness
+                and non-equilibrium behavior in solar wind parameters.
+              </li>
+              <li>
+                Used to detect disorder spikes that often precede CME events.
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>2. Classical Machine Learning</h3>
+            <ul>
+              <li>
+                <strong>Isolation Forest</strong> and
+                <strong>Autoencoders</strong> trained on normal data detect
+                statistical anomalies.
+              </li>
+              <li>Triggers real-time entropy alerts for further analysis.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>3. Deep Learning for Temporal Modeling</h3>
+            <ul>
+              <li>
+                <strong>BiLSTM + Attention</strong> captures long-range temporal
+                dependencies in entropy patterns.
+              </li>
+              <li>
+                Attention mechanism helps the model focus on critical time
+                windows where CME signals are prominent.
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>4. Real-Time Inference & Alerting</h3>
+            <ul>
+              <li>
+                Live entropy graphs are monitored for spikes beyond threshold
+                (e.g. 1.2).
+              </li>
+              <li>
+                Alerts are triggered based on combined entropy and model anomaly
+                scores.
+              </li>
+            </ul>
+          </div>
+        </div>
+        <!-- 🔼 END OF NEW "Models" SECTION -->
+        <div id="profile" class="section" style="display: none">
+          <div class="card">
+            <h2>User Profile</h2>
+            <p>Welcome, <strong>Logged-in User</strong>!</p>
+          </div>
+
+          <div class="card">
+            <h3>Account Information</h3>
+            <ul>
+              <li><strong>Name:</strong> *********</li>
+              <li><strong>Email:</strong> *********@*****.com</li>
+              <li><strong>Role:</strong> Research Analyst</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Research Contributions</h3>
+            <ul>
+              <li>Designed entropy-based preprocessing pipeline</li>
+              <li>Worked on model integration and live inference</li>
+              <li>Developed visualization tools for anomaly detection</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <h3>Actions</h3>
+            <button
+              style="
+                padding: 10px 20px;
+                background-color: #1e2a38;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+              "
+            >
+              Edit Profile
+            </button>
+            <button
+              style="
+                padding: 10px 20px;
+                background-color: #ccc;
+                color: black;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                margin-left: 10px;
+              "
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div id="signup" class="section" style="display: none">
+          <div class="card">
+            <h2>Register</h2>
+            <form id="registerForm" onsubmit="return false;">
+              <div style="margin-bottom: 10px">
+                <label for="name"><strong>Name:</strong></label
+                ><br />
+                <input
+                  type="text"
+                  id="name"
+                  placeholder="Enter your name"
+                  style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                  "
+                />
+              </div>
+
+              <div style="margin-bottom: 10px">
+                <label for="email"><strong>Email:</strong></label
+                ><br />
+                <input
+                  type="email"
+                  id="email"
+                  placeholder="Enter your email"
+                  style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                  "
+                />
+              </div>
+
+              <div style="margin-bottom: 10px">
+                <label for="password"><strong>Password:</strong></label
+                ><br />
+                <input
+                  type="password"
+                  id="password"
+                  placeholder="Create a password"
+                  style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 5px;
+                    border: 1px solid #ccc;
+                  "
+                />
+              </div>
+
+              <button
+                type="submit"
+                onclick="submitRegisterForm()"
+                style="
+                  background-color: #1e2a38;
+                  color: white;
+                  padding: 10px 20px;
+                  border: none;
+                  border-radius: 5px;
+                "
+              >
+                Register
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div id="alerts" class="section" style="display: none">
+          <div class="card">
+            <h2>Active CME Alerts</h2>
+            <p id="cmeAlertStatus">🔍 Monitoring CME activity...</p>
+          </div>
+
+          <div class="card">
+            <h2>
+              Alert History
+              <button
+                onclick="exportAlerts()"
+                style="float: right; font-size: 0.9rem; padding: 5px 10px"
+              >
+                Export CSV
+              </button>
+            </h2>
+            <table style="width: 100%; border-collapse: collapse">
+              <thead>
+                <tr style="background: #eee">
+                  <th style="padding: 8px; border: 1px solid #ccc">Time</th>
+                  <th style="padding: 8px; border: 1px solid #ccc">Entropy</th>
+                  <th style="padding: 8px; border: 1px solid #ccc">Status</th>
+                </tr>
+              </thead>
+              <tbody id="alertLogTable"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h2>Notification Settings</h2>
+            <label
+              style="display: flex; align-items: center; margin-bottom: 10px"
+            >
+              <input
+                type="checkbox"
+                id="soundToggle"
+                checked
+                style="margin-right: 10px"
+              />
+              🔔 Sound Alert on CME Detection
+            </label>
+            <label style="display: flex; align-items: center">
+              <input
+                type="checkbox"
+                id="emailToggle"
+                style="margin-right: 10px"
+              />
+              📧 Email Me on CME Detection
+            </label>
+          </div>
+        </div>
+
+        <div id="datasets" class="section" style="display: none">
+          <div class="card">
+            <h2>Aditya‑L1 Data Sources</h2>
+            <ul>
+              <li>
+                <a href="https://www.issdc.gov.in/" target="_blank"
+                  >ISSDC Website</a
+                >
+              </li>
+              <li>
+                <a href="https://www.prl.res.in/ASPEX/" target="_blank"
+                  >SWIS-ASPEX Time-Series Data</a
+                >
+              </li>
+              <li>
+                <a
+                  href="https://www.sidc.be/cactus/catalog.php "
+                  target="_blank"
+                  >CACTus CME Catalogue (Halo Events)
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div id="live" class="section" style="display: none">
+          <div class="card">
+            <h2>🔴 Live Screening</h2>
+            <iframe
+              src="https://www.youtube.com/embed/_IcgGYZTXQw"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+
+        <div id="profile" class="section" style="display: none">
+          <div class="card">
+            <h2>User Profile</h2>
+            <p>Profile page content goes here.</p>
+          </div>
+        </div>
+
+        <div id="signup" class="section" style="display: none">
+          <div class="card">
+            <h2>Register</h2>
+            <p>Registration form or link goes here.</p>
+          </div>
+        </div>
+
+        <audio
+          id="alertSound"
+          src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"
+          preload="auto"
+        ></audio>
+      </main>
+    </div>
+
+    <footer>
+      🚀 Sponsored by Astrotech | Aditya‑L1 CME Detector | @ 2025 All Rights Are
+      Reserved
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      window.onload = () => {
+        setTimeout(() => {
+          document.getElementById("intro-screen").style.opacity = "0";
+          setTimeout(() => {
+            document.getElementById("intro-screen").style.display = "none";
+            document.querySelector(".main-wrapper").style.display = "flex";
+            initEntropyGraphs();
+          }, 1000);
+        }, 2000);
+      };
+
+      function showSection(id) {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => (s.style.display = "none"));
+        document.getElementById(id).style.display = "block";
+      }
+
+      function initEntropyGraphs() {
+        const ctxDash = document
+          .getElementById("entropyChartDashboard")
+          .getContext("2d");
+        const ctxTab = document
+          .getElementById("entropyChartEntropyTab")
+          .getContext("2d");
+        const data = [],
+          labels = [];
+        for (let i = 0; i < 20; i++) {
+          data.push((Math.random() * 1.5).toFixed(2));
+          labels.push("T" + i);
+        }
+
+        const cfg = {
+          type: "line",
+          data: {
+            labels: [...labels],
+            datasets: [
+              {
+                label: "Entropy",
+                data: [...data],
+                borderColor: "blue",
+                fill: false,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            scales: { y: { beginAtZero: true } },
+          },
+        };
+        const chartDash = new Chart(ctxDash, JSON.parse(JSON.stringify(cfg)));
+        const chartTab = new Chart(ctxTab, JSON.parse(JSON.stringify(cfg)));
+
+        const logEl = document.getElementById("entropyLogTable");
+        const logArr = [];
+        let t = 20;
+
+        setInterval(() => {
+          const v = parseFloat((Math.random() * 1.5).toFixed(2));
+          [chartDash, chartTab].forEach((c) => {
+            c.data.labels.push("T" + t);
+            c.data.datasets[0].data.push(v);
+            c.data.labels.shift();
+            c.data.datasets[0].data.shift();
+            c.update();
+          });
+
+          const ts = new Date().toLocaleTimeString();
+          const st = v > 1.2 ? "⚠️ CME Detected" : "Normal";
+          logArr.push({ time: ts, val: v, status: st });
+          if (logArr.length > 10) logArr.shift();
+          logEl.innerHTML = logArr
+            .map(
+              (e) =>
+                `<tr><td style="padding:8px;border:1px solid #ccc;">${e.time}</td><td style="padding:8px;border:1px solid #ccc;">${e.val}</td><td style="padding:8px;border:1px solid #ccc;">${e.status}</td></tr>`
+            )
+            .join("");
+
+          document.getElementById("anomaly-prob").textContent =
+            (v * 100).toFixed(1) + "%";
+          document.getElementById("cme-status").textContent =
+            v > 1.2 ? "✅ CME Detected" : "No CME";
+          if (v > 1.2) document.getElementById("alertSound").play();
+
+          t++;
+        }, 2000);
+      }
+    </script>
+  </body>
+</html>
