@@ -190,78 +190,71 @@
           
         </div>
         
-        <div id="pipeline" style="display: none;">
+       <div id="pipeline" class="section" style="display: none;">
 
-        <div class="card">
-  <h2>Raw Dummy Dataset</h2>
-  <table id="rawDatasetTable" style="width: 100%; border-collapse: collapse; text-align: center; font-family: sans-serif;">
-   <thead style="background: #eee">
-      <tr>
-        <th>Index</th>
-        <th>Flux</th>
-        <th>Density</th>
-        <th>Temp</th>
-        <th>Velocity</th>
-        <th>Pressure</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-  <button onclick="runCMEDetectionPipeline()">Click Run Pipeline</button>
+  <div class="card">
+    <h2>Raw Dummy Dataset</h2>
+    <table id="rawDatasetTable" style="width: 100%; border-collapse: collapse; text-align: center; font-family: sans-serif;">
+      <thead style="background: #eee">
+        <tr>
+          <th>Index</th>
+          <th>Flux</th>
+          <th>Density</th>
+          <th>Temp</th>
+          <th>Velocity</th>
+          <th>Pressure</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button onclick="runCMEDetectionPipeline()">Click Run Pipeline</button>
+  </div>
+
+  <div class="card">
+    <h2>CME Detection Pipeline</h2>
+    <div style="margin-top: 10px">
+      <p><strong>Shannon Entropy:</strong> <span id="shannon"></span></p>
+      <p><strong>Tsallis Entropy:</strong> <span id="tsallis"></span></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Extracted Features</h3>
+    <table style="width: 100%; border-collapse: collapse; text-align: center">
+      <thead style="background: #eee">
+        <tr>
+          <th>Beta</th>
+          <th>Pressure</th>
+          <th>Anisotropy</th>
+          <th>Gradient</th>
+        </tr>
+      </thead>
+      <tbody id="featuresTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Anomaly Detection</h3>
+    <table style="width: 100%; border-collapse: collapse; text-align: center;">
+      <thead style="background: #eee">
+        <tr>
+          <th>Index</th>
+          <th>Value</th>
+          <th>Z-Score</th>
+          <th>Anomaly</th>
+        </tr>
+      </thead>
+      <tbody id="anomalyTable"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Final Decision</h3>
+    <p id="finalDecision" style="font-weight: bold; font-size: 1.2rem"></p>
+  </div>
+  
 </div>
 
-          <div class="card">
-            <h2>CME Detection Pipeline</h2>
-          <!--  <button onclick="runCMEDetectionPipeline()">Run Pipeline</button> -->
-            <div style="margin-top: 10px">
-              <p>
-                <strong>Shannon Entropy:</strong> <span id="shannon"></span>
-              </p>
-              <p>
-                <strong>Tsallis Entropy:</strong> <span id="tsallis"></span>
-                
-              </p>
-            </div>
-          </div>
-
-          <div class="card">
-            <h3>Extracted Features</h3>
-            <table style="width: 100%; border-collapse: collapse;text-align: center">
-              <thead style="background: #eee">
-                <tr>
-                  <th>Beta</th>
-                  <th>Pressure</th>
-                  <th>Anisotropy</th>
-                  <th>Gradient</th>
-                </tr>
-              </thead>
-              <tbody id="featuresTable"></tbody>
-            </table>
-          </div>
-
-          <div class="card">
-            <h3>Anomaly Detection</h3>
-            <table style="width: 100%; border-collapse: collapse; text-align: center;">
-              <thead style="background: #eee">
-                <tr>
-                  <th>Index</th>
-                  <th>Value</th>
-                  <th>Z-Score</th>
-                  <th>Anomaly</th>
-                </tr>
-              </thead>
-              <tbody id="anomalyTable"></tbody>
-            </table>
-          </div>
-
-          <div class="card">
-            <h3>Final Decision</h3>
-            <p
-              id="finalDecision"
-              style="font-weight: bold; font-size: 1.2rem"
-            ></p>
-          </div>
-        </div>
         <!-- 🔍 Entropy Tab -->
         <div id="entropy" class="section" style="display: none">
           <div class="card">
