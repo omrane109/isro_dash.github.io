@@ -113,6 +113,7 @@
         <h2>CME Monitor</h2>
         <div class="nav-links">
           <a onclick="showSection('dashboard')">Dashboard</a>
+          <a onclick="showSection('pipeline')">CME Pipeline</a>
           <a onclick="showSection('entropy')">Entropy</a>
           <a onclick="showSection('models')">Models</a>
           <a onclick="showSection('alerts')">Alerts</a>
@@ -186,8 +187,80 @@
               </p>
             </div>
           </div>
+          
         </div>
+        <div id="pipeline" class="section" style="display: block">
 
+        <div class="card">
+  <h2>Raw Dummy Dataset</h2>
+  <table id="rawDatasetTable">
+    <thead>
+      <tr>
+        <th>Index</th>
+        <th>Flux</th>
+        <th>Density</th>
+        <th>Temp</th>
+        <th>Velocity</th>
+        <th>Pressure</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="runCMEDetectionPipeline()">Run Pipeline</button>
+</div>
+
+          <div class="card">
+            <h2>CME Detection Pipeline</h2>
+            <button onclick="runCMEDetectionPipeline()">Run Pipeline</button>
+            <div style="margin-top: 10px">
+              <p>
+                <strong>Shannon Entropy:</strong> <span id="shannon"></span>
+              </p>
+              <p>
+                <strong>Tsallis Entropy:</strong> <span id="tsallis"></span>
+                
+              </p>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Extracted Features</h3>
+            <table style="width: 100%; border-collapse: collapse">
+              <thead style="background: #eee">
+                <tr>
+                  <th>Beta</th>
+                  <th>Pressure</th>
+                  <th>Anisotropy</th>
+                  <th>Gradient</th>
+                </tr>
+              </thead>
+              <tbody id="featuresTable"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h3>Anomaly Detection</h3>
+            <table style="width: 100%; border-collapse: collapse">
+              <thead style="background: #eee">
+                <tr>
+                  <th>Index</th>
+                  <th>Value</th>
+                  <th>Z-Score</th>
+                  <th>Anomaly</th>
+                </tr>
+              </thead>
+              <tbody id="anomalyTable"></tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <h3>Final Decision</h3>
+            <p
+              id="finalDecision"
+              style="font-weight: bold; font-size: 1.2rem"
+            ></p>
+          </div>
+        </div>
         <!-- 🔍 Entropy Tab -->
         <div id="entropy" class="section" style="display: none">
           <div class="card">
@@ -483,63 +556,17 @@
                 </a>
               </li>
             </ul>
-<div class="card">
-  <h2>📈 CME Dataset: Entropy & Anomaly Calculation</h2>
-  <p>This table shows sample solar wind data and computed anomaly probability:</p>
-  <table id="anomalyTable" style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-    <thead style="background: #eee;">
-      <tr>
-        <th style="padding: 8px; border: 1px solid #ccc;">Time</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Flux</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Temp</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Velocity</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Anomaly %</th>
-        <th style="padding: 8px; border: 1px solid #ccc;">Risk</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td style="padding:8px;">T0</td><td>350</td><td>5.2</td><td>380</td></tr>
-      <tr><td style="padding:8px;">T1</td><td>360</td><td>5.5</td><td>400</td></tr>
-      <tr><td style="padding:8px;">T2</td><td>355</td><td>5.3</td><td>390</td></tr>
-      <tr><td style="padding:8px;">T3</td><td>365</td><td>5.7</td><td>410</td></tr>
-      <tr><td style="padding:8px;">T4</td><td>400</td><td>6.2</td><td>450</td></tr>
-      <tr><td style="padding:8px;">T5</td><td>380</td><td>6.1</td><td>460</td></tr>
-      <tr><td style="padding:8px;">T6</td><td>410</td><td>6.5</td><td>455</td></tr>
-      <tr><td style="padding:8px;">T7</td><td>370</td><td>6.3</td><td>440</td></tr>
-      <tr><td style="padding:8px;">T8</td><td>360</td><td>5.9</td><td>430</td></tr>
-      <tr><td style="padding:8px;">T9</td><td>340</td><td>5.8</td><td>420</td></tr>
-      <tr><td style="padding:8px;">T10</td><td>400</td><td>6.2</td><td>470</td></tr>
-      <tr><td style="padding:8px;">T11</td><td>430</td><td>6.4</td><td>480</td></tr>
-      <tr><td style="padding:8px;">T12</td><td>420</td><td>6.6</td><td>490</td></tr>
-      <tr><td style="padding:8px;">T13</td><td>410</td><td>6.8</td><td>485</td></tr>
-      <tr><td style="padding:8px;">T14</td><td>390</td><td>6.5</td><td>475</td></tr>
-      <tr><td style="padding:8px;">T15</td><td>385</td><td>6.3</td><td>460</td></tr>
-      <tr><td style="padding:8px;">T16</td><td>370</td><td>6.0</td><td>450</td></tr>
-      <tr><td style="padding:8px;">T17</td><td>395</td><td>6.1</td><td>455</td></tr>
-      <tr><td style="padding:8px;">T18</td><td>415</td><td>6.7</td><td>480</td></tr>
-      <tr><td style="padding:8px;">T19</td><td>430</td><td>6.9</td><td>495</td></tr>
-    </tbody>
-  </table>
-</div> 
-</div>         
-</div>
-
-     <div id="live" class="section" style="display: none">
-
-          <div class="card">
-
-            <h2>🔴 Live Screening</h2>
-
-            <iframe
-
-              src="https://www.youtube.com/embed/_IcgGYZTXQw"
-
-              allowfullscreen
-
-            ></iframe>
-
           </div>
+        </div>
 
+        <div id="live" class="section" style="display: none">
+          <div class="card">
+            <h2>🔴 Live Screening</h2>
+            <iframe
+              src="https://www.youtube.com/embed/_IcgGYZTXQw"
+              allowfullscreen
+            ></iframe>
+          </div>
         </div>
 
         <div id="profile" class="section" style="display: none">
@@ -661,190 +688,132 @@
         }, 2000);
       }
 
-  function computeEntropy(probabilities) {
-    let entropy = 0;
-    for (let p of probabilities) {
-      if (p > 0) entropy -= p * Math.log2(p);
-    }
-    return entropy.toFixed(4);
-  }
-
-  function calculateProbabilities(values) {
-    const total = values.length;
-    const freq = {};
-    values.forEach(v => {
-      freq[v] = (freq[v] || 0) + 1;
-    });
-    return values.map(v => freq[v] / total);
-  }
-
-  function computeAnomalyScore(values) {
-    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-    const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / values.length;
-    const std = Math.sqrt(variance);
-    const latest = values[values.length - 1];
-    const zScore = (latest - mean) / std;
-    const prob = Math.min(Math.abs(zScore) / 3, 1); // normalize between 0–1
-    return (prob * 100).toFixed(2);
-  }
-
-  function runEntropyAnomalyAnalysis() {
-    const rows = document.querySelectorAll("#datasets table tbody tr");
-    const flux = [], temp = [], velocity = [];
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("td");
-      flux.push(parseFloat(cells[1].textContent));
-      temp.push(parseFloat(cells[2].textContent));
-      velocity.push(parseFloat(cells[3].textContent));
-    });
-
-    // Compute entropy
-    const entropyFlux = computeEntropy(calculateProbabilities(flux));
-    const entropyTemp = computeEntropy(calculateProbabilities(temp));
-    const entropyVelocity = computeEntropy(calculateProbabilities(velocity));
-
-    // Compute anomaly score
-    const anomalyFlux = computeAnomalyScore(flux);
-    const anomalyTemp = computeAnomalyScore(temp);
-    const anomalyVelocity = computeAnomalyScore(velocity);
-
-    // Display results
-    alert(`🔍 Entropy:
-- Flux: ${entropyFlux}
-- Temp: ${entropyTemp}
-- Velocity: ${entropyVelocity}
-
-⚠️ Anomaly Probability (%):
-- Flux: ${anomalyFlux}%
-- Temp: ${anomalyTemp}%
-- Velocity: ${anomalyVelocity}%`);
-  }
-
-  // OPTIONAL: Trigger analysis when dataset tab opens
-  const datasetsLink = document.querySelector("a[onclick=\"showSection('datasets')\"]");
-  datasetsLink.addEventListener("click", () => {
-    setTimeout(runEntropyAnomalyAnalysis, 500); // wait for DOM to render
-  });
-
-function computeAnomalyProbability() {
-    const rows = document.querySelectorAll(
-      'div.card table tbody tr'
-    );
-
-    // Get average values to normalize
-    let totalFlux = 0,
-        totalTemp = 0,
-        totalVel = 0;
-    const data = [];
-
-    rows.forEach((row) => {
-      const cells = row.querySelectorAll("td");
-      const flux = parseFloat(cells[1].textContent);
-      const temp = parseFloat(cells[2].textContent);
-      const vel = parseFloat(cells[3].textContent);
-
-      totalFlux += flux;
-      totalTemp += temp;
-      totalVel += vel;
-
-      data.push({ row, flux, temp, vel });
-    });
-
-    const avgFlux = totalFlux / data.length;
-    const avgTemp = totalTemp / data.length;
-    const avgVel = totalVel / data.length;
-
-    // Now compute anomaly score and display it
-    data.forEach(({ row, flux, temp, vel }) => {
-      const normFlux = flux / avgFlux;
-      const normTemp = temp / avgTemp;
-      const normVel = vel / avgVel;
-
-      const anomalyScore = (normFlux + normTemp + normVel) / 3;
-
-      let probText = "Low";
-      let color = "green";
-
-      if (anomalyScore > 1.15 && anomalyScore <= 1.25) {
-        probText = "Moderate";
-        color = "orange";
-      } else if (anomalyScore > 1.25) {
-        probText = "⚠ High";
-        color = "red";
+      function showSection(id) {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => (s.style.display = "none"));
+        document.getElementById(id).style.display = "block";
       }
 
-      const newCell = document.createElement("td");
-      newCell.textContent = probText;
-      newCell.style = `padding:8px; border:1px solid #ccc; color:${color}; font-weight:bold;`;
-      row.appendChild(newCell);
-    });
+      function shannonEntropy(data) {
+  const counts = {};
+  data.forEach(val => counts[val] = (counts[val] || 0) + 1);
+  const total = data.length;
+  return Object.values(counts).map(c => {
+    const p = c / total;
+    return -p * Math.log2(p);
+  }).reduce((a, b) => a + b, 0);
+}
 
-    // Add header cell
-    const headerRow = document.querySelector(
-      'div.card table thead tr'
-    );
-    const newHeader = document.createElement("th");
-    newHeader.textContent = "Anomaly Probability";
-    newHeader.style = "padding:8px; border:1px solid #ccc;";
-    headerRow.appendChild(newHeader);
-  }
+function tsallisEntropy(data, q = 2) {
+  const counts = {};
+  data.forEach(val => counts[val] = (counts[val] || 0) + 1);
+  const total = data.length;
+  const sum = Object.values(counts)
+    .map(c => Math.pow(c / total, q))
+    .reduce((a, b) => a + b, 0);
+  return (1 - sum) / (q - 1);
+}
 
-  // Run after page load
-  window.addEventListener("load", computeAnomalyProbability);
-function calculateAnomaly() {
-    const table = document.getElementById("anomalyTable");
-    const rows = table.querySelectorAll("tbody tr");
-
-    let sumFlux = 0, sumTemp = 0, sumVel = 0;
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("td");
-      sumFlux += parseFloat(cells[1].textContent);
-      sumTemp += parseFloat(cells[2].textContent);
-      sumVel += parseFloat(cells[3].textContent);
-    });
-
-    const avgFlux = sumFlux / rows.length;
-    const avgTemp = sumTemp / rows.length;
-    const avgVel = sumVel / rows.length;
-
-    rows.forEach(row => {
-      const cells = row.querySelectorAll("td");
-      const flux = parseFloat(cells[1].textContent);
-      const temp = parseFloat(cells[2].textContent);
-      const vel = parseFloat(cells[3].textContent);
-
-      const fluxNorm = flux / avgFlux;
-      const tempNorm = temp / avgTemp;
-      const velNorm = vel / avgVel;
-
-      const score = ((fluxNorm + tempNorm + velNorm) / 3) * 100;
-
-      const anomalyCell = document.createElement("td");
-      anomalyCell.textContent = score.toFixed(1) + "%";
-      anomalyCell.style = "padding:8px;border:1px solid #ccc;font-weight:bold;";
-
-      const riskCell = document.createElement("td");
-      riskCell.style = "padding:8px;border:1px solid #ccc;font-weight:bold;";
-
-      if (score < 110) {
-        riskCell.textContent = "Low";
-        riskCell.style.color = "green";
-      } else if (score < 125) {
-        riskCell.textContent = "Moderate";
-        riskCell.style.color = "orange";
-      } else {
-        riskCell.textContent = "⚠ High";
-        riskCell.style.color = "red";
+      function extractFeatures(data) {
+        return data.map((d) => ({
+          beta: +(d.pressure / (d.temp + 1)).toFixed(2),
+          pressure: +(d.density * d.temp).toFixed(2),
+          anisotropy: +(Math.random() * 2).toFixed(2),
+          gradient: +Math.abs(d.temp - d.density).toFixed(2),
+        }));
       }
 
-      row.appendChild(anomalyCell);
-      row.appendChild(riskCell);
-    });
-  }
+      function detectAnomalies(data, threshold = 2.0) {
+        const mean = data.reduce((a, b) => a + b, 0) / data.length;
+        const std = Math.sqrt(
+          data.map((x) => Math.pow(x - mean, 2)).reduce((a, b) => a + b) /
+            data.length
+        );
+        return data.map((v, i) => {
+          const z = (v - mean) / std;
+          return {
+            index: i,
+            value: v.toFixed(2),
+            zScore: z.toFixed(2),
+            isAnomaly: Math.abs(z) > threshold,
+          };
+        });
+      }
 
-  window.addEventListener("load", calculateAnomaly);
+      function runCMEDetectionPipeline() {
+      
+          const dataset = [
+          { flux: 1.23, density: 4.54, temp: 580823, velocity: 401.69, pressure: 2636.93 },
+          { flux: 1.01, density: 1.97, temp: 22246, velocity: 345.32, pressure: 43.83 },
+          { flux: 1.17, density: 2.58, temp: 36070, velocity: 349.16, pressure: 93.04 },
+          { flux: 0.89, density: 2.86, temp: 49074, velocity: 352.40, pressure: 140.32 },
+          { flux: 1.45, density: 2.70, temp: 43443, velocity: 351.78, pressure: 117.30 },
+          { flux: 0.95, density: 2.60, temp: 34424, velocity: 349.52, pressure: 89.50 },
+          { flux: 1.11, density: 2.64, temp: 34378, velocity: 348.42, pressure: 90.36 },
+          { flux: 1.00, density: 2.68, temp: 40931, velocity: 350.00, pressure: 109.70 },
+          { flux: 0.98, density: 2.68, temp: 40214, velocity: 350.05, pressure: 107.77 },
+          { flux: 1.23, density: 2.69, temp: 36949, velocity: 350.54, pressure: 99.54 },
+          { flux: 1.30, density: 2.57, temp: 36232, velocity: 352.34, pressure: 93.08 },
+          { flux: 1.05, density: 2.54, temp: 32784, velocity: 352.18, pressure: 83.25 },
+          { flux: 1.19, density: 2.52, temp: 33711, velocity: 350.88, pressure: 84.57 },
+          { flux: 1.14, density: 2.37, temp: 33743, velocity: 351.00, pressure: 79.92 },
+          { flux: 1.08, density: 2.10, temp: 38630, velocity: 352.58, pressure: 81.12 },
+          { flux: 1.32, density: 2.13, temp: 35684, velocity: 353.61, pressure: 76.08 },
+          { flux: 1.44, density: 2.07, temp: 39477, velocity: 351.57, pressure: 81.62 },
+          { flux: 1.10, density: 2.22, temp: 37697, velocity: 352.74, pressure: 83.71 },
+          { flux: 1.12, density: 2.22, temp: 38044, velocity: 350.97, pressure: 84.46 },
+          { flux: 1.33, density: 2.27, temp: 37639, velocity: 348.21, pressure: 85.57 }
+        ];
+        const rawTableBody = document.querySelector("#rawDatasetTable tbody");
+rawTableBody.innerHTML = dataset.map((d, i) =>
+  `<tr>
+    <td>${i}</td>
+    <td>${d.flux}</td>
+    <td>${d.density}</td>
+    <td>${d.temp}</td>
+    <td>${d.velocity}</td>
+    <td>${d.pressure}</td>
+  </tr>`
+).join("");
+        
+        const entropyValues = dataset.map((d) => Math.floor(d.temp));
+const shannon = shannonEntropy(entropyValues);
+const tsallis = tsallisEntropy(entropyValues);
+
+document.getElementById("shannon").textContent = shannon.toFixed(4);
+document.getElementById("tsallis").textContent = tsallis.toFixed(4);
+
+        const features = extractFeatures(dataset);
+        const tbody = document.querySelector("#featuresTable");
+        tbody.innerHTML = features
+          .map(
+            (f) =>
+              `<tr><td>${f.beta}</td><td>${f.pressure}</td><td>${f.anisotropy}</td><td>${f.gradient}</td></tr>`
+          )
+          .join("");
+
+        const pressureSeries = dataset.map((d) => d.pressure);
+        const anomalies = detectAnomalies(pressureSeries);
+        const anomalyTbody = document.querySelector("#anomalyTable");
+        anomalyTbody.innerHTML = anomalies
+          .map(
+            (a) =>
+              `<tr><td>${a.index}</td><td>${a.value}</td><td>${
+                a.zScore
+              }</td><td>${a.isAnomaly ? "Yes" : "No"}</td></tr>`
+          )
+          .join("");
+
+        const decision =
+          (shannon > 1.2 || tsallis > 1.2) &&
+          anomalies.some((a) => a.isAnomaly);
+        document.getElementById("finalDecision").textContent = decision
+          ? "🚨 CME Detected — Alert Triggered"
+          : "✅ Normal";
+          
+          document.getElementById("pipeline").style.display = "block";
+      }
     </script>
   </body>
 </html>
