@@ -233,20 +233,20 @@
     </table>
   </div>
 
-  <div class="card">
-    <h3>Anomaly Detection</h3>
-    <table style="width: 100%; border-collapse: collapse; text-align: center;">
-      <thead style="background: #eee">
-        <tr>
-          <th>Index</th>
-          <th>Value</th>
-          <th>Z-Score</th>
-          <th>Anomaly</th>
-        </tr>
-      </thead>
-      <tbody id="anomalyTable"></tbody>
-    </table>
-  </div>
+ <div class="card">
+  <h3>Autoencoder Anomaly Detection</h3>
+  <table style="width: 100%; border-collapse: collapse; text-align: center;">
+    <thead style="background: #eee">
+      <tr>
+        <th>Index</th>
+        <th>MSE</th>
+        <th>Anomaly</th>
+      </tr>
+    </thead>
+    <tbody id="anomalyTable"></tbody>
+  </table>
+</div>
+
 
   <div class="card">
     <h3>Final Decision</h3>
@@ -803,79 +803,30 @@ function tsallisEntropy(data, q = 2) {
         });
       }
 
-      function runCMEDetectionPipeline() {
-      
-          const dataset = [
-          { flux: 1.23, density: 4.54, temp: 580823, velocity: 401.69, pressure: 2636.93 },
-          { flux: 1.01, density: 1.97, temp: 22246, velocity: 345.32, pressure: 43.83 },
-          { flux: 1.17, density: 2.58, temp: 36070, velocity: 349.16, pressure: 93.04 },
-          { flux: 0.89, density: 2.86, temp: 49074, velocity: 352.40, pressure: 140.32 },
-          { flux: 1.45, density: 2.70, temp: 43443, velocity: 351.78, pressure: 117.30 },
-          { flux: 0.95, density: 2.60, temp: 34424, velocity: 349.52, pressure: 89.50 },
-          { flux: 1.11, density: 2.64, temp: 34378, velocity: 348.42, pressure: 90.36 },
-          { flux: 1.00, density: 2.68, temp: 40931, velocity: 350.00, pressure: 109.70 },
-          { flux: 0.98, density: 2.68, temp: 40214, velocity: 350.05, pressure: 107.77 },
-          { flux: 1.23, density: 2.69, temp: 36949, velocity: 350.54, pressure: 99.54 },
-          { flux: 1.30, density: 2.57, temp: 36232, velocity: 352.34, pressure: 93.08 },
-          { flux: 1.05, density: 2.54, temp: 32784, velocity: 352.18, pressure: 83.25 },
-          { flux: 1.19, density: 2.52, temp: 33711, velocity: 350.88, pressure: 84.57 },
-          { flux: 1.14, density: 2.37, temp: 33743, velocity: 351.00, pressure: 79.92 },
-          { flux: 1.08, density: 2.10, temp: 38630, velocity: 352.58, pressure: 81.12 },
-          { flux: 1.32, density: 2.13, temp: 35684, velocity: 353.61, pressure: 76.08 },
-          { flux: 1.44, density: 2.07, temp: 39477, velocity: 351.57, pressure: 81.62 },
-          { flux: 1.10, density: 2.22, temp: 37697, velocity: 352.74, pressure: 83.71 },
-          { flux: 1.12, density: 2.22, temp: 38044, velocity: 350.97, pressure: 84.46 },
-          { flux: 1.33, density: 2.27, temp: 37639, velocity: 348.21, pressure: 85.57 }
-        ];
-        const rawTableBody = document.querySelector("#rawDatasetTable tbody");
-rawTableBody.innerHTML = dataset.map((d, i) =>
-  `<tr>
-    <td>${i}</td>
-    <td>${d.flux}</td>
-    <td>${d.density}</td>
-    <td>${d.temp}</td>
-    <td>${d.velocity}</td>
-    <td>${d.pressure}</td>
-  </tr>`
-).join("");
-        
-        const entropyValues = dataset.map((d) => Math.floor(d.temp));
-const shannon = shannonEntropy(entropyValues);
-const tsallis = tsallisEntropy(entropyValues);
+    // Load autoencoder-based anomaly results
+fetch("bah.json")
+  .then((res) => res.json())
+  .then((autoResults) => {
+    // Fill anomaly table with MSE
+    const anomalyTbody = document.querySelector("#anomalyTable");
+    anomalyTbody.innerHTML = autoResults
+      .map((a) =>
+        `<tr>
+          <td>${a.Index}</td>
+          <td>${a.MSE}</td>
+          <td>${a.Anomaly ? "Yes ❌" : "No ✅"}</td>
+        </tr>`
+      ).join("");
 
-document.getElementById("shannon").textContent = shannon.toFixed(4);
-document.getElementById("tsallis").textContent = tsallis.toFixed(4);
+    // Final decision based on entropy + autoencoder anomaly
+    const decision =
+      (shannon > 1.2 || tsallis > 1.2) &&
+      autoResults.some((a) => a.Anomaly);
+    document.getElementById("finalDecision").textContent = decision
+      ? "🚨 CME Detected — Alert Triggered"
+      : "✅ Normal";
+  });
 
-        const features = extractFeatures(dataset);
-        const tbody = document.querySelector("#featuresTable");
-        tbody.innerHTML = features
-          .map(
-            (f) =>
-              `<tr><td>${f.beta}</td><td>${f.pressure}</td><td>${f.anisotropy}</td><td>${f.gradient}</td></tr>`
-          )
-          .join("");
-
-        const pressureSeries = dataset.map((d) => d.pressure);
-        const anomalies = detectAnomalies(pressureSeries);
-        const anomalyTbody = document.querySelector("#anomalyTable");
-        anomalyTbody.innerHTML = anomalies
-          .map(
-            (a) =>
-              `<tr><td>${a.index}</td><td>${a.value}</td><td>${
-                a.zScore
-              }</td><td>${a.isAnomaly ? "Yes" : "No"}</td></tr>`
-          )
-          .join("");
-
-        const decision =
-          (shannon > 1.2 || tsallis > 1.2) &&
-          anomalies.some((a) => a.isAnomaly);
-        document.getElementById("finalDecision").textContent = decision
-          ? "🚨 CME Detected — Alert Triggered"
-          : "✅ Normal";
-          
-          document.getElementById("pipeline").style.display = "block";
-      }
     </script>
   </body>
 </html>
