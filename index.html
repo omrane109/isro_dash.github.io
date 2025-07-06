@@ -921,10 +921,28 @@ const threshold = meanMSE + 2 * stdMSE;
         </tr>`
       ).join("");
 
-    const decision = (shannon > 1.2 || tsallis > 1.2) && results.some(r => r.anomaly);
-    document.getElementById("finalDecision").textContent = decision
-      ? "🚨 CME Detected — Alert Triggered"
-      : "✅ Normal";
+   const cmeDetected = [];
+const normalDetected = [];
+
+results.forEach(r => {
+  const isCME = r.anomaly && (shannon > 1.2 || tsallis > 1.2);
+  if (isCME) {
+    cmeDetected.push(r.index);
+  } else {
+    normalDetected.push(r.index);
+  }
+});
+
+let decisionText = "";
+if (cmeDetected.length > 0) {
+  decisionText += `🚨 CME Detected at Dataset number${cmeDetected.length > 1 ? "s" : ""} ${cmeDetected.join(", ")}.<br>`;
+}
+if (normalDetected.length > 0) {
+  decisionText += `✅ No CME at Dataset number${normalDetected.length > 1 ? "s" : ""} ${normalDetected.join(", ")}.`;
+}
+
+document.getElementById("finalDecision").innerHTML = decisionText;
+
   });
 });
 }
