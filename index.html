@@ -266,8 +266,7 @@
             <ul>
               <li><strong>Shannon:</strong> randomness</li>
               <li><strong>Tsallis:</strong> non‑extensive systems</li>
-              <li><strong>CME Detection:</strong> Entropy &gt; 1.2 <em>and</em> Anomaly = <strong>Yes</strong></li>
-
+              <li><strong>CME Detection:</strong> Entropy &gt; 1.2 <em>and</em> Z‑score &gt; 2 (Anomaly = Yes)</li>
 
             </ul>
           </div>
@@ -597,6 +596,8 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+
     <script>
       window.onload = () => {
         setTimeout(() => {
@@ -803,6 +804,24 @@ function tsallisEntropy(data, q = 2) {
           };
         });
       }
+      // Normalize function
+function normalize(data) {
+  const flat = data.flat();
+  const min = Math.min(...flat);
+  const max = Math.max(...flat);
+  return data.map(row => row.map(val => (val - min) / (max - min)));
+}
+
+// Build autoencoder
+function buildAutoencoder(inputSize) {
+  const model = tf.sequential();
+  model.add(tf.layers.dense({ units: 4, activation: 'relu', inputShape: [inputSize] }));
+  model.add(tf.layers.dense({ units: 2, activation: 'relu' }));
+  model.add(tf.layers.dense({ units: inputSize, activation: 'sigmoid' }));
+  model.compile({ optimizer: 'adam', loss: 'meanSquaredError' });
+  return model;
+}
+
 function runCMEDetectionPipeline() {
   const dataset = [
     { flux: 1.23, density: 4.54, temp: 580823, velocity: 401.69, pressure: 2636.93 },
@@ -847,11 +866,14 @@ function runCMEDetectionPipeline() {
   const entropyValues = dataset.map((d) => Math.floor(d.temp));
   const shannon = shannonEntropy(entropyValues);
   const tsallis = tsallisEntropy(entropyValues);
+  
 
   document.getElementById("shannon").textContent = shannon.toFixed(4);
   document.getElementById("tsallis").textContent = tsallis.toFixed(4);
-const features = extractFeatures(dataset);
+  
+  const features = extractFeatures(dataset);
 const featureBody = document.querySelector("#featuresTable");
+
 featureBody.innerHTML = features.map(f => `
   <tr>
     <td>${f.beta}</td>
@@ -861,29 +883,50 @@ featureBody.innerHTML = features.map(f => `
   </tr>
 `).join("");
 
-  // Load autoencoder-based anomaly results
-  fetch("bah.json")
-    .then((res) => res.json())
-    .then((autoResults) => {
-      // Fill anomaly table
-      const anomalyTbody = document.querySelector("#anomalyTable");
-      anomalyTbody.innerHTML = autoResults
-        .map((a) =>
-          `<tr>
-            <td>${a.Index}</td>
-            <td>${a.MSE}</td>
-            <td>${a.Anomaly ? "Yes " : "No " }</td>
-          </tr>`
-        ).join("");
+  // Build input tensor
+const inputs = dataset.map(d => [d.flux, d.density, d.temp, d.velocity, d.pressure]);
+const normalized = normalize(inputs);
+const inputTensor = tf.tensor2d(normalized);
 
-      // Final decision
-      const decision =
-        (shannon > 1.2 || tsallis > 1.2) &&
-        autoResults.some((a) => a.Anomaly);
-      document.getElementById("finalDecision").textContent = decision
-        ? "🚨 CME Detected — Alert Triggered"
-        : "✅ Normal";
-    });
+// Autoencoder anomaly detection
+const model = buildAutoencoder(5);
+
+model.fit(inputTensor.slice([0, 0], [10, 5]), inputTensor.slice([0, 0], [10, 5]), {
+  epochs: 100,
+  shuffle: true,
+  verbose: 0
+})
+.then(() => {
+  const reconstructed = model.predict(inputTensor);
+  const mse = tf.sub(inputTensor, reconstructed).square().mean(1);
+
+  mse.array().then(errors => {
+   const meanMSE = errors.reduce((a, b) => a + b, 0) / errors.length;
+const stdMSE = Math.sqrt(errors.map(e => Math.pow(e - meanMSE, 2)).reduce((a, b) => a + b, 0) / errors.length);
+const threshold = meanMSE + 2 * stdMSE;
+
+    const results = errors.map((err, i) => ({
+      index: i,
+      mse: err.toFixed(5),
+      anomaly: err > threshold
+    }));
+
+    const anomalyTbody = document.querySelector("#anomalyTable");
+    anomalyTbody.innerHTML = results
+      .map(r => `
+        <tr>
+          <td>${r.index}</td>
+          <td>${r.mse}</td>
+          <td>${r.anomaly ? "Yes"  : "No "  }</td>
+        </tr>`
+      ).join("");
+
+    const decision = (shannon > 1.2 || tsallis > 1.2) && results.some(r => r.anomaly);
+    document.getElementById("finalDecision").textContent = decision
+      ? "🚨 CME Detected — Alert Triggered"
+      : "✅ Normal";
+  });
+});
 }
     </script>
   </body>
