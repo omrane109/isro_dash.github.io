@@ -847,13 +847,8 @@ function runCMEDetectionPipeline() {
   const shannon = shannonEntropy(entropyValues);
   const tsallis = tsallisEntropy(entropyValues);
 
-
-
-// ... entropy calculation
-document.getElementById("shannon").textContent = shannon.toFixed(4);
-document.getElementById("tsallis").textContent = tsallis.toFixed(4);
-
-// ✅ ADD THIS
+  document.getElementById("shannon").textContent = shannon.toFixed(4);
+  document.getElementById("tsallis").textContent = tsallis.toFixed(4);
 const features = extractFeatures(dataset);
 const featureBody = document.querySelector("#featuresTable");
 featureBody.innerHTML = features.map(f => `
@@ -876,7 +871,7 @@ featureBody.innerHTML = features.map(f => `
           `<tr>
             <td>${a.Index}</td>
             <td>${a.MSE}</td>
-            <td>${a.Anomaly ? "Yes ❌" : "No ✅"/t  d>
+            <td>${a.Anomaly ? "Yes ❌" : "No ✅"}</td>
           </tr>`
         ).join("");
 
