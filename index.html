@@ -489,13 +489,6 @@
 
           <div class="card">
             <h2>
-              Alert History
-              <button
-                onclick="exportAlerts()"
-                style="float: right; font-size: 0.9rem; padding: 5px 10px"
-              >
-                Export CSV
-              </button>
             </h2>
             <table style="width: 100%; border-collapse: collapse">
               <thead>
@@ -609,6 +602,7 @@
           }, 1000);
         }, 2000);
       };
+      
 
       function showSection(id) {
   document
@@ -761,6 +755,7 @@ if (cmeDetected) {
     // Update the Active Alerts panel
     document.getElementById("cmeAlertStatus").textContent =
       `CME Detected at ${data.time}`;
+      
   }
 }
 
