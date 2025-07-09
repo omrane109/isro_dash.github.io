@@ -483,7 +483,7 @@
 
         <div id="alerts" class="section" style="display: none">
           <div class="card">
-            <h2>Active CME Alerts</h2>
+            <h2>Active CME Alerts (When a CME is detected , a Beep Sound is heard as a signal of detection) </h2>
             <p id="cmeAlertStatus">🔍 Monitoring CME activity...</p>
           </div>
 
@@ -741,9 +741,28 @@ logEl.innerHTML = logArr
   document.getElementById("anomaly-prob").textContent =
     (Math.abs(zScore) * 100).toFixed(1) + "%";
   document.getElementById("cme-status").textContent =
-    cmeDetected ? "✅ CME Detected" : "No CME";
+    cmeDetected ? "🚨 CME Detected" : "No CME";
 
   if (cmeDetected) document.getElementById("alertSound").play();
+if (cmeDetected) {
+  document.getElementById("alertSound").play();
+
+  // Prevent duplicate alert entry using timestamp check
+  if (!document.getElementById("alertLogTable").innerHTML.includes(data.time)) {
+    const alertTable = document.getElementById("alertLogTable");
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td style="padding:8px; border:1px solid #ccc;">${data.time}</td>
+      <td style="padding:8px; border:1px solid #ccc;">${entropyVal.toFixed(2)}</td>
+      <td style="padding:8px; border:1px solid #ccc;">CME Detected 🚨</td>
+    `;
+    alertTable.appendChild(row);
+
+    // Update the Active Alerts panel
+    document.getElementById("cmeAlertStatus").textContent =
+      `CME Detected at ${data.time}`;
+  }
+}
 
   index++;
 }, 2000);
